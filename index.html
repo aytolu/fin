@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#120d0b">
+<title>Jev Groove</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2712%27 fill=%27%23ffb14a%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #120d0b;
+    --ground-2: #1c1512;
+    --ground-3: #261d19;
+    --line: #3b2d26;
+    --paper: #f3e7d9;
+    --muted: #a8948a;
+    --amber: #ffb14a;
+    --v1: #ff5fa2;
+    --v2: #4de3ff;
+    --good: #7fdc8f;
+    --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --r: 14px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: var(--ground); color: var(--paper); }
+  body {
+    font: 15px/1.5 var(--display);
+    min-height: 100dvh;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, textarea, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  /* ---------- top bar ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+    background: color-mix(in srgb, var(--ground) 82%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; margin-right: auto; }
+  .brand span { color: var(--muted); font-weight: 400; }
+  .pill {
+    font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
+    padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .pill.live { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--line)); }
+  .pill.live i { background: var(--good); box-shadow: 0 0 8px var(--good); }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--ground-2); display: grid; place-items: center;
+  }
+
+  /* ---------- stage ---------- */
+  .stage { position: relative; height: min(46vh, 420px); min-height: 260px; overflow: hidden; }
+  #viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage-overlay {
+    position: absolute; inset: auto 0 0 0; padding: 16px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--ground) 0%, transparent 100%);
+  }
+  .section-name {
+    font-weight: 800; font-size: clamp(40px, 13vw, 88px); line-height: .85; letter-spacing: -0.045em;
+    text-transform: lowercase; transition: color .4s;
+  }
+  .stage-meta { font: 12px/1.6 var(--mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .stage-meta b { color: var(--paper); font-weight: 500; }
+
+  /* ---------- console ---------- */
+  .console { max-width: 880px; margin: 0 auto; padding: 8px 16px 24px; display: grid; gap: 22px; }
+  .eyebrow { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  #compose { display: grid; gap: 12px; }
+  #prompt {
+    width: 100%; min-height: 84px; resize: vertical; padding: 14px 16px;
+    font-size: 19px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;
+    background: var(--ground-2); border: 1px solid var(--line); border-radius: var(--r);
+  }
+  #prompt:focus { outline: none; border-color: var(--amber); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; font-size: 13px; color: var(--muted); white-space: nowrap;
+  }
+  .chip:active { background: var(--ground-3); color: var(--paper); }
+  .go {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 16px 20px; border-radius: var(--r); border: 0;
+    background: var(--amber); color: #1a0f05; font-weight: 800; font-size: 17px; letter-spacing: -0.01em;
+    transition: transform .12s, filter .2s;
+  }
+  .go:active { transform: scale(.98); }
+  .go[aria-busy="true"] { filter: saturate(.4) brightness(.8); }
+
+  .verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+  .verdict .big { font-weight: 800; font-size: clamp(26px, 7vw, 40px); letter-spacing: -0.03em; line-height: 1; }
+  .verdict .sub { font: 12px/1.5 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .verdict .sub b { color: var(--amber); font-weight: 500; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+  .card {
+    background: var(--ground-2); border: 1px solid var(--line); border-radius: var(--r);
+    padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start;
+    animation: rise .5s both; animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  @keyframes rise { from { transform: translateY(8px); opacity: .25; } }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .card-title { font-size: 13px; color: var(--muted); }
+  .type-tag { font: 10px/1 var(--mono); letter-spacing: .06em; color: var(--muted); border: 1px solid var(--line); padding: 3px 6px; border-radius: 6px; }
+  .card-value { font-weight: 800; font-size: 24px; letter-spacing: -0.03em; line-height: 1.05; }
+  .card-value small { font: 500 12px var(--mono); color: var(--muted); letter-spacing: 0; margin-left: 6px; }
+  .bars { display: grid; gap: 4px; }
+  .bar { display: grid; grid-template-columns: 62px 1fr 30px; gap: 6px; align-items: center; font: 11px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .track { height: 6px; background: var(--ground-3); border-radius: 3px; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--muted); border-radius: 3px; transform-origin: left; animation: grow .7s cubic-bezier(.2,.8,.2,1) both; }
+  .bar.win { color: var(--paper); }
+  .bar.win .fill { background: linear-gradient(90deg, var(--v1), var(--v2)); }
+  .bar span:last-child { text-align: right; }
+  @keyframes grow { from { transform: scaleX(0); } }
+  .seg { display: grid; grid-auto-flow: column; gap: 3px; height: 26px; align-items: end; }
+  .seg div { border-radius: 3px; background: var(--v2); min-height: 3px; animation: grow-y .6s cubic-bezier(.2,.8,.2,1) both; transform-origin: bottom; }
+  @keyframes grow-y { from { transform: scaleY(0); } }
+  .seg-labels { display: flex; justify-content: space-between; font: 10px var(--mono); color: var(--muted); }
+  .noul { height: 8px; border-radius: 4px; background: var(--ground-3); position: relative; overflow: hidden; }
+  .noul div { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--v1), var(--v2)); border-radius: 4px; animation: grow .7s cubic-bezier(.2,.8,.2,1) both; transform-origin: left; }
+
+  .panel { border-top: 1px solid var(--line); padding-top: 18px; display: grid; gap: 12px; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .panel h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+  .panel p { margin: 0; color: var(--muted); max-width: 62ch; }
+  .switch { position: relative; width: 52px; height: 30px; flex: none; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--ground-3); border: 1px solid var(--line); transition: background .2s; pointer-events: none; }
+  .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
+  .switch input:checked + span { background: color-mix(in srgb, var(--amber) 30%, var(--ground-3)); }
+  .switch input:checked + span::after { transform: translateX(22px); background: var(--amber); }
+  .switch input:focus-visible + span { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 12px/1.4 var(--mono); font-variant-numeric: tabular-nums; }
+  .log li { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; padding: 8px 10px; background: var(--ground-2); border-radius: 10px; color: var(--muted); }
+  .log li b { color: var(--paper); font-weight: 500; }
+  .log li:first-child { outline: 1px solid var(--line); }
+  .log .empty { grid-template-columns: 1fr; }
+
+  details.json summary { cursor: pointer; font: 500 12px var(--mono); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  details.json pre { margin: 10px 0 0; padding: 12px; background: var(--ground-2); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; font: 11px/1.5 var(--mono); color: var(--muted); max-height: 360px; }
+  .take { display: grid; gap: 8px; }
+  .take audio { width: 100%; }
+  .take a { color: var(--amber); font: 500 13px var(--mono); }
+  .foot { font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--paper); }
+
+  /* ---------- transport ---------- */
+  .transport {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    display: flex; align-items: center; gap: 12px;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
+  }
+  .play {
+    width: 56px; height: 56px; border-radius: 50%; border: 0; flex: none;
+    background: var(--paper); color: var(--ground); display: grid; place-items: center;
+  }
+  .play svg { width: 22px; height: 22px; }
+  .now { min-width: 0; flex: 1; display: grid; gap: 2px; }
+  .now b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now span { font: 11px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .rec {
+    height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--ground-2);
+    font: 500 12px var(--mono); letter-spacing: .06em; display: inline-flex; align-items: center; gap: 8px; flex: none;
+  }
+  .rec i { width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d; }
+  .rec[aria-pressed="true"] { border-color: #ff4d4d; color: #ffb3b3; }
+  .rec[aria-pressed="true"] i { animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+
+  /* ---------- settings ---------- */
+  dialog {
+    width: min(460px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 18px;
+    background: var(--ground-2); color: var(--paper); padding: 20px;
+  }
+  dialog::backdrop { background: rgb(0 0 0 / .6); backdrop-filter: blur(3px); }
+  dialog h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.02em; }
+  dialog p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .field { display: grid; gap: 6px; margin-bottom: 12px; }
+  .field label { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .field input { padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--ground); font: 14px var(--mono); }
+  .row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 6px; }
+  .btn { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: transparent; font-weight: 600; }
+  .btn.primary { background: var(--amber); color: #1a0f05; border-color: var(--amber); }
+
+  .toast {
+    position: fixed; left: 16px; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); z-index: 7;
+    margin: 0 auto; max-width: 520px; padding: 12px 14px; border-radius: 12px;
+    background: var(--ground-3); border: 1px solid var(--line); font-size: 14px;
+    transition: opacity .3s, transform .3s;
+  }
+  .toast[data-show="false"] { opacity: 0; transform: translateY(10px); pointer-events: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">jev<span>/</span>groove</div>
+  <span class="pill" id="modePill"><i></i><span>demo</span></span>
+  <button class="icon-btn" id="openSettings" aria-label="Jev bağlantı ayarları">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</header>
+
+<section class="stage" aria-label="Görselleştirici">
+  <canvas id="viz"></canvas>
+  <div class="stage-overlay">
+    <div class="section-name" id="sectionName">hazır</div>
+    <div class="stage-meta" id="stageMeta"><b>—</b> bpm<br>bar <b>0</b></div>
+  </div>
+</section>
+
+<main class="console">
+  <form id="compose" autocomplete="off">
+    <label class="eyebrow" for="prompt">Sahneyi anlat, Jev bestelesin</label>
+    <textarea id="prompt" rows="2" maxlength="400">Gece yarısı İstanbul'da yağmur, boş bir vapurda yalnız bir yolcu</textarea>
+    <div class="chips" id="chips" aria-label="Hazır sahneler"></div>
+    <button class="go" type="submit" id="goBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></svg>
+      <span>Jev'e sor ve çal</span>
+    </button>
+  </form>
+
+  <div>
+    <p class="eyebrow">Jev'in tipli kararları</p>
+    <div class="verdict">
+      <div class="big" id="verdictBig">—</div>
+      <div class="sub" id="verdictSub">örnek sahne · henüz sorulmadı</div>
+    </div>
+  </div>
+  <div class="grid" id="decisions"></div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Jev şef</h2>
+      <label class="switch" title="Jev şef"><input type="checkbox" id="conductorToggle" checked aria-label="Jev şefi aç veya kapat"><span></span></label>
+    </div>
+    <p>Çalarken her 8 barda bir Jev'e o anki müzikal durum gönderilir. Jev bir sonraki bölümü (giriş, yükseliş, drop, nefes, kapanış) ve davul fill'ini seçer. Döngünün içinde karar veren bir model: parça kendi kendine akar.</p>
+    <ul class="log" id="conductorLog"><li class="empty">Çalmaya başlayınca şefin kararları burada görünür.</li></ul>
+  </section>
+
+  <section class="panel" id="takePanel" hidden>
+    <h2>Kaydın</h2>
+    <div class="take" id="take"></div>
+  </section>
+
+  <section class="panel">
+    <details class="json">
+      <summary>Ham istek / yanıt (JSON)</summary>
+      <pre id="rawJson">{}</pre>
+    </details>
+    <p class="foot">Jev bir dil modeli değil: metin yazmaz, sorularına tipli cevap verir (<code>choice</code>, <code>score</code>, <code>noul</code>). Bu sayfa tüm soruları tek istekte sorar, gelen olasılıkları doğrudan sentezleyicinin parametrelerine çevirir. Ses tamamen tarayıcıda, Web Audio ile üretilir. API anahtarı yoksa Jev'in cevap biçimini taklit eden yerel bir demo çalışır.</p>
+  </section>
+</main>
+
+<nav class="transport" aria-label="Çalma kontrolleri">
+  <button class="play" id="playBtn" aria-label="Çal">
+    <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
+  </button>
+  <div class="now">
+    <b id="nowTitle">Jev Groove</b>
+    <span id="nowSub">Sahneni yaz, Jev'e sor</span>
+  </div>
+  <button class="rec" id="recBtn" aria-pressed="false"><i></i>KAYIT</button>
+</nav>
+
+<dialog id="settings">
+  <form method="dialog" id="settingsForm">
+    <h2>Jev bağlantısı</h2>
+    <p>Anahtarın yalnızca bu tarayıcıda saklanır. Tarayıcıdan doğrudan erişim CORS yüzünden engellenirse <code>node server.mjs</code> ile gelen küçük proxy'yi kullan; sayfa onu kendiliğinden bulur.</p>
+    <div class="field">
+      <label for="cfgEndpoint">Uç nokta</label>
+      <input id="cfgEndpoint" type="url" inputmode="url" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="cfgKey">API anahtarı</label>
+      <input id="cfgKey" type="password" spellcheck="false" placeholder="ts_…">
+    </div>
+    <div class="field">
+      <label for="cfgModel">Model</label>
+      <input id="cfgModel" type="text" spellcheck="false">
+    </div>
+    <div class="row">
+      <button class="btn" value="demo" type="submit">Demo kullan</button>
+      <button class="btn primary" value="save" type="submit">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" data-show="false" role="status"></div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   1. Jev şeması — tüm sorular tipli. Cevabın şekli istekte sabitlenir.
+   ===================================================================== */
+
+/** @typedef {{type:'choice', instructions:string, criteria:Record<string,string>}} ChoiceQ */
+/** @typedef {{type:'score', instructions:string, criteria:string[]}} ScoreQ */
+/** @typedef {{type:'noul', instructions:string}} NoulQ */
+/** @typedef {ChoiceQ|ScoreQ|NoulQ} Question */
+
+/** @type {Record<string, Question>} */
+const COMPOSE_QUESTIONS = {
+  genre: { type: "choice", instructions: "Bu sahnenin film müziği hangi tarzda olmalı?", criteria: {
+    ambient: "süzülen, ritimsiz, atmosferik dokular",
+    lofi: "tozlu, sıcak, yavaş hip-hop ritmi, plak cızırtısı",
+    house: "dört vuruşlu dans ritmi, kulüp, hareket",
+    synthwave: "80'ler, neon, gece sürüşü, retro synth",
+    trap: "ağır 808 bas, hızlı hi-hat, karanlık gerilim",
+    cinematic: "epik, geniş, film sahnesi, büyük davullar" } },
+  mode: { type: "choice", instructions: "Hangi müzikal mod bu duyguyu en iyi taşır?", criteria: {
+    major: "parlak, mutlu, açık", minor: "hüzünlü, içe dönük",
+    dorian: "umutlu hüzün, groove", phrygian: "karanlık, gergin, egzotik",
+    lydian: "rüya gibi, büyülü, süzülen", mixolydian: "rahat, güneşli, bluesy" } },
+  key: { type: "choice", instructions: "Hangi ton merkezi bu sahnenin rengine uyar?", criteria: {
+    C: "sade, beyaz, nötr", "C#": "keskin, parıltılı", D: "zafer, gün ışığı", "D#": "ağır, derin",
+    E: "parlak, gergin tel", F: "pastoral, yumuşak", "F#": "uzak, yabancı, buğulu", G: "sıcak, halk",
+    "G#": "gece, kadife", A: "açık hava, genç", "A#": "görkemli, pirinç", B: "yakıcı, delici" } },
+  progression: { type: "choice", instructions: "Hangi akor yürüyüşü bu hikâyeyi anlatır?", criteria: {
+    rise: "I–V–vi–IV: yükselen, umut dolu", melancholy: "i–VI–III–VII: melankolik, epik",
+    loop: "i–iv–v–i: döngüsel, hipnotik", dream: "I–iii–IV–V: yumuşak, rüya gibi",
+    tension: "i–VII–VI–VII: gerilimli, sinematik" } },
+  palette: { type: "choice", instructions: "Bu sahnenin ışığı hangi renklerde?", criteria: {
+    neon: "pembe ve mor neon", ocean: "mavi ve turkuaz", sunset: "turuncu ve kızıl",
+    forest: "yeşil ve yosun", gold: "altın ve kehribar", ice: "buz mavisi ve beyaz" } },
+  tempo: { type: "score", instructions: "Müzik ne kadar hızlı akmalı?", criteria: ["çok yavaş", "yavaş", "orta", "hızlı", "çok hızlı"] },
+  energy: { type: "score", instructions: "Sahnenin enerjisi ne kadar yüksek?", criteria: ["dingin", "yumuşak", "dengeli", "yoğun", "patlayıcı"] },
+  brightness: { type: "score", instructions: "Ses ne kadar parlak ya da karanlık olmalı?", criteria: ["zifiri", "loş", "dengeli", "parlak", "ışıl ışıl"] },
+  space: { type: "score", instructions: "Ses ne kadar büyük bir mekânda yankılanmalı?", criteria: ["kuru, yakın", "küçük oda", "salon", "katedral", "sonsuz boşluk"] },
+  swing: { type: "noul", instructions: "Ritim swing/shuffle hissiyle mi çalınmalı?" },
+  melody: { type: "noul", instructions: "Önde belirgin, akılda kalan bir melodi olmalı mı?" },
+};
+
+/** @type {Record<string, Question>} */
+const CONDUCTOR_QUESTIONS = {
+  section: { type: "choice", instructions: "Parçanın bir sonraki 8 barlık bölümü ne olmalı?", criteria: {
+    intro: "az katman, sakin giriş", build: "gerilim artıyor, filtre açılıyor",
+    drop: "tüm katmanlar, zirve", breakdown: "davul çekiliyor, nefes alan melodi",
+    outro: "sönümleniyor, sadeleşiyor" } },
+  fill: { type: "noul", instructions: "Yeni bölüme geçmeden önce davul fill çalınsın mı?" },
+};
+
+const LABELS = {
+  genre: "Tarz", mode: "Mod", key: "Ton", progression: "Akor yürüyüşü", palette: "Işık",
+  tempo: "Tempo", energy: "Enerji", brightness: "Parlaklık", space: "Mekân", swing: "Swing", melody: "Melodi",
+};
+const PRETTY = {
+  rise: "yükseliş", melancholy: "melankoli", loop: "döngü", dream: "rüya", tension: "gerilim",
+  neon: "neon", ocean: "okyanus", sunset: "gün batımı", forest: "orman", gold: "altın", ice: "buz",
+  major: "majör", minor: "minör", intro: "giriş", build: "yükseliş", drop: "drop", breakdown: "nefes", outro: "kapanış",
+};
+const pretty = (k) => PRETTY[k] ?? k;
+
+/* =====================================================================
+   2. Jev istemcisi + cevap normalizasyonu
+   ===================================================================== */
+
+const DEFAULT_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("jevgroove:" + k); return v ?? d; } catch { return d; } },
+  set(k, v) { try { v == null ? localStorage.removeItem("jevgroove:" + k) : localStorage.setItem("jevgroove:" + k, v); } catch {} },
+};
+const cfg = {
+  endpoint: store.get("endpoint", DEFAULT_ENDPOINT),
+  key: store.get("key", ""),
+  model: store.get("model", "jev-latest"),
+  live: store.get("live", "0") === "1",
+  proxy: false,
+  servedModel: "",
+};
+
+/**
+ * Jev'e tek geçişte soru sorar. Canlı değilse (ya da canlı çağrı başarısızsa)
+ * aynı cevap şeklini üreten yerel simülasyona düşer.
+ */
+async function askJev(state, questions, simulate) {
+  const body = { model: cfg.model, state, questions };
+  const t0 = performance.now();
+  if (cfg.live) {
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (cfg.key && !cfg.proxy) headers.Authorization = "Bearer " + cfg.key;
+      const res = await fetch(cfg.endpoint, { method: "POST", headers, body: JSON.stringify(body) });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`Jev ${res.status}: ${text.slice(0, 140)}`);
+      const json = JSON.parse(text);
+      if (!json.answers) throw new Error("Jev yanıtında 'answers' alanı yok");
+      cfg.servedModel = json.model || cfg.model;
+      return { answers: json.answers, raw: json, request: body, ms: performance.now() - t0, live: true };
+    } catch (err) {
+      const cors = err instanceof TypeError;
+      toast(cors
+        ? "Tarayıcı Jev'e doğrudan bağlanamadı (CORS). server.mjs proxy'sini çalıştır; şimdilik demo modu."
+        : `${err.message}. Şimdilik demo modunda devam ediyorum.`);
+      if (cors) setLive(false);
+    }
+  }
+  await new Promise((r) => setTimeout(r, 70 + Math.random() * 110));
+  const answers = simulate(state, questions);
+  const raw = { model: "demo-simulasyon", answers };
+  return { answers, raw, request: body, ms: performance.now() - t0, live: false };
+}
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+/** choice → {value, probs, confidence} */
+function readChoice(a, q) {
+  const keys = Object.keys(q.criteria);
+  const src = a?.probabilities ?? (a?.choice ? { [a.choice]: 1 } : {});
+  const p = keys.map((k) => Math.max(0, +src[k] || 0));
+  const sum = p.reduce((s, x) => s + x, 0) || 1;
+  const probs = Object.fromEntries(keys.map((k, i) => [k, p[i] / sum]));
+  const best = keys.reduce((b, k) => (probs[k] > probs[b] ? k : b), keys[0]);
+  const value = keys.includes(a?.choice) ? a.choice : best;
+  return { kind: "choice", value, probs, confidence: a?.confidence ?? probs[value] };
+}
+
+/** score → {value 0..1, dist[]} — seviye dağılımının beklenen değeri */
+function readScore(a, q) {
+  const n = q.criteria.length;
+  const dist = new Array(n).fill(0);
+  const entries = Object.entries(a?.probabilities ?? {});
+  if (entries.length) {
+    const numeric = entries.every(([k]) => !isNaN(+k));
+    const base = numeric ? Math.min(...entries.map(([k]) => +k)) : 0;
+    entries.forEach(([k, v], i) => {
+      let idx = q.criteria.indexOf(k);
+      if (idx < 0) idx = numeric ? +k - base : i;
+      if (idx >= 0 && idx < n) dist[idx] += Math.max(0, +v || 0);
+    });
+  }
+  const sum = dist.reduce((s, x) => s + x, 0);
+  let value;
+  if (sum > 0) {
+    dist.forEach((_, i) => (dist[i] /= sum));
+    value = dist.reduce((s, p, i) => s + p * i, 0) / (n - 1);
+  } else {
+    const s = +a?.score;
+    value = isNaN(s) ? 0.5 : s <= 1 ? s : (s - 1) / (n - 1);
+    dist[Math.round(clamp01(value) * (n - 1))] = 1;
+  }
+  value = clamp01(value);
+  return { kind: "score", value, dist, label: q.criteria[Math.round(value * (n - 1))] };
+}
+
+/** noul → {value 0..1} */
+function readNoul(a) {
+  const v = +(a?.noul ?? a?.probability ?? 0.5);
+  return { kind: "noul", value: clamp01(isNaN(v) ? 0.5 : v) };
+}
+
+function readAll(answers, questions) {
+  const out = {};
+  for (const [id, q] of Object.entries(questions)) {
+    const a = answers?.[id];
+    out[id] = q.type === "choice" ? readChoice(a, q) : q.type === "score" ? readScore(a, q) : readNoul(a);
+  }
+  return out;
+}
+
+/* =====================================================================
+   3. Demo simülasyonu — Jev'in cevap şeklini taklit eden anahtar kelime modeli
+   ===================================================================== */
+
+function hash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function rng(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const LEXICON = [
+  [/yağmur|rain|gece|night|melankol|hüzün|sad|yalnız|lonely|sonbahar|autumn|vapur|istanbul|özlem/, { energy: -.3, brightness: -.4, space: .3, tempo: -.3, swing: .4, genre: { lofi: 1.4, ambient: .7 }, mode: { minor: 1, dorian: .8 }, progression: { melancholy: 1.2, loop: .5 }, palette: { ocean: .7, neon: .4 } }],
+  [/parti|party|dans|dance|kulüp|club|festival|disko|ibiza/, { energy: .8, tempo: .6, brightness: .3, genre: { house: 1.8 }, mode: { minor: .4, mixolydian: .6 }, progression: { loop: 1 }, palette: { neon: 1 } }],
+  [/uzay|space|yıldız|star|galaksi|kozmik|\bay\b|moon|orbit|astronot/, { space: 1, energy: -.2, genre: { ambient: 1.4, synthwave: .7 }, mode: { lydian: 1.4 }, progression: { dream: 1 }, palette: { ice: .8, neon: .6 } }],
+  [/neon|80|retro|araba|drive|otoyol|highway|şehir|city|miami|tokyo|sürüş/, { genre: { synthwave: 1.8 }, tempo: .25, energy: .35, palette: { neon: 1.6 }, progression: { melancholy: .6, rise: .5 } }],
+  [/kovala|chase|karanlık|dark|korku|fear|gerilim|savaş|battle|boss|tehlike|kaçış|suç/, { energy: .7, brightness: -.7, tempo: .5, melody: -.3, genre: { trap: 1.1, cinematic: 1.2 }, mode: { phrygian: 1.6, minor: .6 }, progression: { tension: 1.7 }, palette: { sunset: .6 } }],
+  [/güneş|sun|yaz|summer|deniz|sea|plaj|beach|bodrum|tatil|mutlu|happy|sabah|morning|kahvaltı/, { brightness: .7, energy: .2, genre: { house: .7, lofi: .5 }, mode: { major: 1.3, mixolydian: .9 }, palette: { sunset: 1.3 }, progression: { rise: 1.4 } }],
+  [/orman|forest|doğa|nature|dağ|mountain|göl|lake|kamp/, { space: .5, energy: -.2, genre: { ambient: 1, cinematic: .6 }, palette: { forest: 1.7 }, mode: { dorian: .7, lydian: .6 } }],
+  [/kar|snow|kış|winter|buz|ice|soğuk|cold|kutup/, { brightness: .3, energy: -.35, space: .5, palette: { ice: 1.7 }, genre: { ambient: .9 }, mode: { lydian: .6, minor: .5 } }],
+  [/epik|epic|kahraman|hero|zafer|victory|film|sinema|destan/, { energy: .6, space: .7, melody: .5, genre: { cinematic: 1.8 }, progression: { melancholy: 1, rise: .6 }, mode: { minor: .8 } }],
+  [/sakin|calm|huzur|peace|uyku|sleep|meditasyon|yoga|çay|kahve|coffee|kitap|study|ders|pazar/, { energy: -.7, tempo: -.6, swing: .5, genre: { lofi: 1.4, ambient: 1 }, mode: { dorian: .6, major: .4 }, progression: { dream: .8 } }],
+  [/hızlı|fast|koş|run|adrenalin|öfke|angry|rage|yarış|race/, { tempo: .8, energy: .9, genre: { trap: 1, house: .7 }, mode: { minor: .8 } }],
+  [/aşk|love|romantik|sevgili|kalp|heart|dans ediyor/, { melody: .5, genre: { lofi: .8, synthwave: .6 }, mode: { major: .5, dorian: .5 }, progression: { dream: 1.3 }, palette: { neon: .6, sunset: .6 } }],
+  [/altın|gold|lüks|luxury|caz|jazz|şarap|wine|bar\b/, { palette: { gold: 1.7 }, swing: .9, genre: { lofi: 1.1 }, mode: { dorian: .8 } }],
+  [/okyanus|ocean|dalga|wave|\bsu\b|water|mavi|blue|boğaz/, { palette: { ocean: 1.6 }, space: .5, genre: { ambient: .6 } }],
+  [/oyun|game|piksel|pixel|arcade|robot/, { tempo: .4, brightness: .5, genre: { synthwave: .8, house: .5 }, mode: { mixolydian: .6, major: .6 }, palette: { neon: .8 } }],
+];
+
+function softmax(scores, temp) {
+  const keys = Object.keys(scores);
+  const m = Math.max(...keys.map((k) => scores[k]));
+  const e = keys.map((k) => Math.exp((scores[k] - m) / temp));
+  const s = e.reduce((a, b) => a + b, 0);
+  return Object.fromEntries(keys.map((k, i) => [k, +(e[i] / s).toFixed(4)]));
+}
+
+function simulateCompose(state, questions) {
+  const text = String(state).toLocaleLowerCase("tr");
+  const r = rng(hash(text));
+  const f = { energy: 0, tempo: 0, brightness: 0, space: 0, swing: 0, melody: .2 };
+  const cat = { genre: {}, mode: {}, progression: {}, palette: {}, key: {} };
+  for (const [re, w] of LEXICON) {
+    if (!re.test(text)) continue;
+    for (const [k, v] of Object.entries(w)) {
+      if (typeof v === "number") f[k] += v;
+      else for (const [c, x] of Object.entries(v)) cat[k][c] = (cat[k][c] || 0) + x;
+    }
+  }
+  const answers = {};
+  for (const [id, q] of Object.entries(questions)) {
+    if (q.type === "choice") {
+      const sc = {};
+      for (const k of Object.keys(q.criteria)) sc[k] = (cat[id]?.[k] || 0) + r() * .7;
+      const probabilities = softmax(sc, id === "key" ? .35 : .45);
+      const choice = Object.keys(probabilities).reduce((a, b) => (probabilities[b] > probabilities[a] ? b : a));
+      answers[id] = { type: "choice", choice, confidence: probabilities[choice], probabilities };
+    } else if (q.type === "score") {
+      const n = q.criteria.length;
+      const center = clamp01(.5 + (f[id] || 0) * .45 + (r() - .5) * .18) * (n - 1);
+      const sc = Object.fromEntries(q.criteria.map((c, i) => [c, -((i - center) ** 2)]));
+      const probabilities = softmax(sc, .9);
+      const score = q.criteria.reduce((s, c, i) => s + probabilities[c] * i, 0) / (n - 1);
+      answers[id] = { type: "score", score: +score.toFixed(3), probabilities };
+    } else {
+      answers[id] = { type: "noul", noul: +clamp01(.5 + (f[id] || 0) * .45 + (r() - .5) * .3).toFixed(3) };
+    }
+  }
+  return answers;
+}
+
+/** Şef simülasyonu: klasik bir yay (giriş→yükseliş→drop→nefes→drop…) */
+function simulateConductor(state) {
+  const s = JSON.parse(state);
+  const next = { intro: "build", build: "drop", drop: s.bar > 40 && Math.random() < .35 ? "outro" : "breakdown", breakdown: "build", outro: "intro" }[s.section] ?? "build";
+  const probabilities = softmax(Object.fromEntries(Object.keys(CONDUCTOR_QUESTIONS.section.criteria).map((k) => [k, (k === next ? 2.2 : 0) + Math.random() * .6])), .5);
+  const choice = Object.keys(probabilities).reduce((a, b) => (probabilities[b] > probabilities[a] ? b : a));
+  return {
+    section: { type: "choice", choice, confidence: probabilities[choice], probabilities },
+    fill: { type: "noul", noul: +(choice === "drop" ? .85 : .3 + Math.random() * .3).toFixed(3) },
+  };
+}
+
+/* =====================================================================
+   4. Kararları müziğe çeviren eşleme
+   ===================================================================== */
+
+const SCALES = {
+  major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10],
+  phrygian: [0, 1, 3, 5, 7, 8, 10], lydian: [0, 2, 4, 6, 7, 9, 11], mixolydian: [0, 2, 4, 5, 7, 9, 10],
+};
+const PROGRESSIONS = { rise: [0, 4, 5, 3], melancholy: [0, 5, 2, 6], loop: [0, 3, 4, 0], dream: [0, 2, 3, 4], tension: [0, 6, 5, 6] };
+const KEYS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const BPM_RANGE = { ambient: [62, 88], lofi: [70, 92], house: [118, 128], synthwave: [88, 116], trap: [128, 150], cinematic: [70, 104] };
+const PALETTES = { neon: [318, 190], ocean: [205, 168], sunset: [18, 340], forest: [132, 78], gold: [40, 18], ice: [196, 222] };
+
+function toParams(d, prompt) {
+  const genre = d.genre.value;
+  const [lo, hi] = BPM_RANGE[genre];
+  return {
+    genre, mode: d.mode.value, key: d.key.value, keyIndex: KEYS.indexOf(d.key.value),
+    scale: SCALES[d.mode.value], prog: PROGRESSIONS[d.progression.value], progName: d.progression.value,
+    palette: d.palette.value, bpm: Math.round(lo + (hi - lo) * d.tempo.value),
+    energy: d.energy.value, bright: d.brightness.value, space: d.space.value,
+    swing: d.swing.value > .5 ? .12 + (d.swing.value - .5) * .5 : 0,
+    melody: d.melody.value, seed: hash(prompt),
+  };
+}
+
+/* =====================================================================
+   5. Ses motoru — tamamen Web Audio, örnek dosya yok
+   ===================================================================== */
+
+const pat = (s) => [...s].map((c) => (c === "x" ? 1 : c === "o" ? .55 : c === "-" ? .3 : 0));
+const DRUMS = {
+  ambient:   { k: pat("x..............."), s: pat("................"), h: pat("....-.......-...") },
+  lofi:      { k: pat("x.....x...x....."), s: pat("....x.......x..."), h: pat("o.o.o.o.o.o.o.o.") },
+  house:     { k: pat("x...x...x...x..."), s: pat("....x.......x..."), h: pat("-.x.-.x.-.x.-.x.") },
+  synthwave: { k: pat("x.......x......."), s: pat("....x.......x..."), h: pat("o.o.o.o.o.o.o.o.") },
+  trap:      { k: pat("x......x..x....."), s: pat("........x......."), h: pat("oo-oo-oooo-oo-oo") },
+  cinematic: { k: pat("x.........x....."), s: pat("............x..."), h: pat("................") },
+};
+const BASS = { // [adım, uzunluk(adım)]
+  ambient: [[0, 16]], lofi: [[0, 5], [10, 4]], house: [[2, 1.5], [6, 1.5], [10, 1.5], [14, 1.5]],
+  synthwave: [[0, 1.5], [2, 1.5], [4, 1.5], [6, 1.5], [8, 1.5], [10, 1.5], [12, 1.5], [14, 1.5]],
+  trap: [[0, 6], [7, 3], [10, 5]], cinematic: [[0, 8], [8, 8]],
+};
+const SECTIONS = {
+  intro:     { kick: 0,  snare: 0, hat: .6, bass: 0,  pad: 1, arp: .5, lead: 0,  e: -.3, cut: .35 },
+  build:     { kick: .7, snare: .6, hat: 1, bass: 1,  pad: 1, arp: 1,  lead: .4, e: 0,   cut: .55 },
+  drop:      { kick: 1,  snare: 1, hat: 1,  bass: 1,  pad: 1, arp: 1,  lead: 1,  e: .25, cut: 1 },
+  breakdown: { kick: 0,  snare: 0, hat: .4, bass: .6, pad: 1, arp: .6, lead: 1,  e: -.2, cut: .5 },
+  outro:     { kick: .6, snare: 0, hat: .6, bass: 1,  pad: 1, arp: .3, lead: 0,  e: -.25, cut: .4 },
+};
+const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
+
+class Engine {
+  constructor() {
+    this.ctx = null; this.playing = false; this.params = null; this.pending = null;
+    this.step = 0; this.bar = 0; this.section = "intro"; this.nextSection = null; this.fill = false;
+    this.kicks = []; this.onBar = () => {}; this.onSection = () => {};
+  }
+
+  init() {
+    if (this.ctx) return;
+    const ctx = (this.ctx = new (window.AudioContext || window.webkitAudioContext)());
+    this.master = ctx.createGain(); this.master.gain.value = .8;
+    this.comp = ctx.createDynamicsCompressor();
+    this.comp.threshold.value = -14; this.comp.ratio.value = 4; this.comp.attack.value = .005; this.comp.release.value = .2;
+    this.master.connect(this.comp); this.comp.connect(ctx.destination);
+    this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = .8;
+    this.comp.connect(this.analyser);
+    this.recDest = ctx.createMediaStreamDestination(); this.comp.connect(this.recDest);
+
+    // Yankı: üretilmiş dürtü tepkisi
+    this.reverb = ctx.createConvolver(); this.reverb.buffer = this.impulse(3.2);
+    this.revGain = ctx.createGain(); this.reverb.connect(this.revGain); this.revGain.connect(this.master);
+    // Gecikme
+    this.delay = ctx.createDelay(2); this.fb = ctx.createGain(); this.fb.gain.value = .35;
+    this.dlyGain = ctx.createGain(); this.dlyGain.gain.value = .35;
+    const dlyTone = ctx.createBiquadFilter(); dlyTone.type = "lowpass"; dlyTone.frequency.value = 3000;
+    this.delay.connect(dlyTone); dlyTone.connect(this.fb); this.fb.connect(this.delay);
+    dlyTone.connect(this.dlyGain); this.dlyGain.connect(this.master);
+
+    // Ped filtresi — bölümler bunu süpürür
+    this.padFilter = ctx.createBiquadFilter(); this.padFilter.type = "lowpass"; this.padFilter.Q.value = 1.2;
+    this.padBus = ctx.createGain(); this.padBus.gain.value = .5;
+    this.padFilter.connect(this.padBus); this.route(this.padBus, 1, .8, 0);
+    // Davul bus'ı (lofi'de boğuk)
+    this.drumTone = ctx.createBiquadFilter(); this.drumTone.type = "lowpass"; this.drumTone.frequency.value = 16000;
+    this.drumBus = ctx.createGain(); this.drumBus.gain.value = .9;
+    this.drumTone.connect(this.drumBus); this.route(this.drumBus, 1, .12, 0);
+    this.synthBus = ctx.createGain(); this.synthBus.gain.value = .5; this.route(this.synthBus, 1, .5, .6);
+
+    const len = ctx.sampleRate; const nb = (this.noise = ctx.createBuffer(1, len, ctx.sampleRate));
+    const data = nb.getChannelData(0); for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  }
+
+  route(node, dry, rev, dly) {
+    const g = (v, dest) => { const x = this.ctx.createGain(); x.gain.value = v; node.connect(x); x.connect(dest); };
+    g(dry, this.master); g(rev, this.reverb); if (dly) g(dly, this.delay);
+  }
+
+  impulse(sec) {
+    const ctx = this.ctx, len = Math.floor(ctx.sampleRate * sec), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2.6;
+    }
+    return buf;
+  }
+
+  /** Yeni parametreler çalarken bir sonraki bar başında devreye girer */
+  setParams(p) {
+    if (!this.playing || !this.params) this.apply(p);
+    else this.pending = p;
+  }
+
+  apply(p) {
+    this.params = p;
+    this.melodyRng = rng(p.seed);
+    this.leadDeg = 7;
+    const t = this.ctx.currentTime;
+    this.revGain.gain.setTargetAtTime(.25 + p.space * 1.1, t, .5);
+    this.delay.delayTime.setTargetAtTime((60 / p.bpm) * .75, t, .05);
+    this.drumTone.frequency.setTargetAtTime(p.genre === "lofi" ? 3200 : 16000, t, .1);
+    this.setCutoff(t);
+  }
+
+  setCutoff(t, ramp = .8) {
+    const p = this.params, sec = SECTIONS[this.section];
+    const f = 280 + (p.bright ** 1.6) * 5200 * sec.cut + p.energy * 900;
+    this.padFilter.frequency.setTargetAtTime(f, t, ramp);
+  }
+
+  async start() {
+    this.init();
+    if (this.ctx.state !== "running") await this.ctx.resume();
+    this.playing = true; this.step = 0; this.bar = 0; this.section = "intro"; this.nextSection = null;
+    this.setCutoff(this.ctx.currentTime, .01);
+    this.nextTime = this.ctx.currentTime + .08;
+    this.onSection(this.section, 0);
+    this.timer = setInterval(() => this.tick(), 25);
+  }
+
+  stop() {
+    this.playing = false; clearInterval(this.timer);
+    const t = this.ctx.currentTime;
+    this.master.gain.setTargetAtTime(0, t, .15);
+  }
+
+  tick() {
+    const ctx = this.ctx;
+    while (this.nextTime < ctx.currentTime + .12) {
+      const p = this.params, stepDur = 60 / p.bpm / 4;
+      if (this.step === 0) this.barStart(this.nextTime);
+      const swingOff = this.step % 2 ? p.swing * stepDur * 2 : 0;
+      this.schedule(this.step, this.nextTime + swingOff, stepDur);
+      this.nextTime += stepDur;
+      this.step = (this.step + 1) % 16;
+      if (this.step === 0) this.bar++;
+    }
+  }
+
+  barStart(t) {
+    if (this.pending) { this.apply(this.pending); this.pending = null; }
+    if (this.bar > 0 && this.bar % 8 === 0) {
+      this.section = this.nextSection ?? this.section;
+      this.nextSection = null; this.fill = false;
+      this.setCutoff(t, this.section === "build" ? 4 : .3);
+      const delay = Math.max(0, (t - this.ctx.currentTime) * 1000);
+      const sec = this.section, bar = this.bar;
+      setTimeout(() => this.onSection(sec, bar), delay);
+    }
+    const bar = this.bar;
+    setTimeout(() => this.onBar(bar), Math.max(0, (t - this.ctx.currentTime) * 1000));
+  }
+
+  schedule(step, t, sd) {
+    const p = this.params, sec = SECTIONS[this.section];
+    const energy = clamp01(p.energy + sec.e);
+    const deg = p.prog[this.bar % 4];
+    const d = DRUMS[p.genre];
+
+    // --- davullar
+    const fillBar = this.fill && this.bar % 8 === 7 && step >= 8;
+    if (fillBar) {
+      if (step >= 12 || step % 2 === 0) this.snare(t, .35 + (step - 8) * .08);
+    } else {
+      if (d.k[step] && sec.kick) this.kick(t, d.k[step] * sec.kick, p.genre === "trap");
+      if (d.s[step] && sec.snare) this.snare(t, d.s[step] * sec.snare);
+      if (d.h[step] && sec.hat && Math.random() < .55 + energy * .6) this.hat(t, d.h[step] * sec.hat, false);
+      if (energy > .72 && sec.hat && step % 2 && p.genre !== "ambient" && Math.random() < energy - .5) this.hat(t, .25, false);
+      if (p.genre === "house" && step % 4 === 2 && sec.hat > .8 && energy > .45) this.hat(t, .35, true);
+      if (p.genre === "trap" && step === 14 && Math.random() < .5 && sec.hat) for (let i = 0; i < 4; i++) this.hat(t + i * sd / 4, .3, false);
+    }
+    if (p.genre === "lofi" && Math.random() < .28) this.crackle(t);
+
+    // --- bas
+    if (sec.bass) for (const [s, len] of BASS[p.genre]) if (s === step) this.bass(t, this.deg(deg) - 12, len * sd, sec.bass, p.genre);
+
+    // --- ped: her bar başında akor
+    if (step === 0 && sec.pad) {
+      const seventh = ["lofi", "synthwave", "ambient"].includes(p.genre);
+      const notes = [0, 2, 4, ...(seventh ? [6] : [])].map((i) => this.deg(deg + i) + 12);
+      this.pad(t, notes, 16 * sd, p.genre);
+    }
+
+    // --- arpej
+    const arpEvery = energy > .6 ? 1 : 2;
+    if (sec.arp && step % arpEvery === 0 && p.genre !== "cinematic" || (p.genre === "cinematic" && sec.arp && step % 4 === 0)) {
+      const tones = [0, 2, 4, 7, 9, 11];
+      const idx = Math.floor(step / arpEvery) % tones.length;
+      const up = (this.bar % 2 === 0) ? idx : tones.length - 1 - idx;
+      if (Math.random() < .35 + energy * .6) this.pluck(t, this.deg(deg + tones[up]) + 24, sd * 1.6, .16 * sec.arp);
+    }
+
+    // --- solo melodi (seed'li, aynı sahne aynı melodi)
+    if (sec.lead && p.melody > .35) {
+      const strong = step % 4 === 0;
+      const chance = (strong ? .55 : .14) * (.6 + p.melody * .8) * sec.lead;
+      if (this.melodyRng() < chance) {
+        if (step === 0) this.leadDeg = deg + [0, 2, 4][Math.floor(this.melodyRng() * 3)] + 7;
+        else this.leadDeg += [-2, -1, -1, 1, 1, 2, 0][Math.floor(this.melodyRng() * 7)];
+        this.leadDeg = Math.max(4, Math.min(13, this.leadDeg));
+        const len = sd * [1, 2, 2, 3, 4][Math.floor(this.melodyRng() * 5)];
+        this.lead(t, this.deg(this.leadDeg) + 12, len, .2 * sec.lead);
+      }
+    }
+  }
+
+  deg(d) {
+    const s = this.params.scale, oct = Math.floor(d / 7), i = ((d % 7) + 7) % 7;
+    return 48 + this.params.keyIndex + s[i] + 12 * oct;
+  }
+
+  env(g, t, a, peak, hold, rel) {
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + a + hold);
+    g.gain.exponentialRampToValueAtTime(.0001, t + a + hold + rel);
+    return t + a + hold + rel + .05;
+  }
+
+  osc(type, f, t, end, dest, detune = 0) {
+    const o = this.ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune;
+    o.connect(dest); o.start(t); o.stop(end); return o;
+  }
+
+  kick(t, v, long) {
+    const g = this.ctx.createGain(); g.connect(this.drumTone);
+    const o = this.ctx.createOscillator(); o.type = "sine"; o.connect(g);
+    o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(long ? 38 : 44, t + (long ? .25 : .12));
+    const end = this.env(g, t, .002, v * 1.1, .02, long ? .9 : .38);
+    o.start(t); o.stop(end);
+    this.kicks.push(t);
+  }
+
+  snare(t, v) {
+    const n = this.ctx.createBufferSource(); n.buffer = this.noise;
+    const bp = this.ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1900; bp.Q.value = .8;
+    const g = this.ctx.createGain(); n.connect(bp); bp.connect(g); g.connect(this.drumTone);
+    const end = this.env(g, t, .001, v * .55, .01, .17);
+    n.start(t, Math.random() * .5); n.stop(end);
+    const tg = this.ctx.createGain(); tg.connect(this.drumTone);
+    this.osc("triangle", 185, t, this.env(tg, t, .001, v * .35, 0, .08), tg);
+  }
+
+  hat(t, v, open) {
+    const n = this.ctx.createBufferSource(); n.buffer = this.noise;
+    const hp = this.ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 7500;
+    const g = this.ctx.createGain(); n.connect(hp); hp.connect(g); g.connect(this.drumTone);
+    const end = this.env(g, t, .001, v * .22, 0, open ? .16 : .035);
+    n.start(t, Math.random() * .5); n.stop(end);
+  }
+
+  crackle(t) {
+    const n = this.ctx.createBufferSource(); n.buffer = this.noise;
+    const hp = this.ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 2500;
+    const g = this.ctx.createGain(); n.connect(hp); hp.connect(g); g.connect(this.master);
+    const at = t + Math.random() * .05;
+    n.start(at, Math.random() * .5); n.stop(this.env(g, at, .0005, .05 + Math.random() * .06, 0, .006));
+  }
+
+  bass(t, m, dur, v, genre) {
+    const f = mtof(m), g = this.ctx.createGain();
+    const lp = this.ctx.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(genre === "trap" ? 300 : 220 + this.params.bright * 900, t);
+    lp.frequency.exponentialRampToValueAtTime(140, t + dur);
+    lp.connect(g); g.connect(this.master);
+    const end = this.env(g, t, .006, .38 * v, Math.max(0, dur - .08), .12);
+    if (genre === "trap") {
+      const o = this.osc("sine", f * 1.5, t, end, lp);
+      o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + .06);
+      const sat = this.ctx.createWaveShaper(); sat.curve = this.satCurve(); // telefon hoparlöründe duyulsun
+      this.osc("sine", f * 2, t, end, sat); sat.connect(lp);
+    } else {
+      this.osc("sawtooth", f, t, end, lp); this.osc("square", f / 2, t, end, lp);
+    }
+  }
+
+  satCurve() {
+    if (this._sat) return this._sat;
+    const c = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 3) * .3; }
+    return (this._sat = c);
+  }
+
+  pad(t, notes, dur, genre) {
+    const slow = genre === "ambient" || genre === "cinematic";
+    for (const m of notes) {
+      const g = this.ctx.createGain(); g.connect(this.padFilter);
+      const end = this.env(g, t, slow ? 1.2 : .25, .09, Math.max(0, dur - (slow ? 1.2 : .25)), slow ? 2 : .6);
+      this.osc("sawtooth", mtof(m), t, end, g, -9);
+      this.osc("sawtooth", mtof(m), t, end, g, 9);
+    }
+  }
+
+  pluck(t, m, dur, v) {
+    const g = this.ctx.createGain(); g.connect(this.synthBus);
+    const lp = this.ctx.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(900 + this.params.bright * 5000, t); lp.frequency.exponentialRampToValueAtTime(400, t + dur);
+    lp.connect(g);
+    const end = this.env(g, t, .003, v, 0, dur);
+    this.osc(this.params.genre === "synthwave" ? "sawtooth" : "triangle", mtof(m), t, end, lp);
+  }
+
+  lead(t, m, dur, v) {
+    const g = this.ctx.createGain(); g.connect(this.synthBus);
+    const end = this.env(g, t, .02, v, dur * .6, .35);
+    const o = this.osc(this.params.genre === "cinematic" || this.params.genre === "ambient" ? "sine" : "triangle", mtof(m), t, end, g);
+    const vib = this.ctx.createOscillator(), vg = this.ctx.createGain();
+    vib.frequency.value = 5.2; vg.gain.value = 9; vib.connect(vg); vg.connect(o.detune); vib.start(t); vib.stop(end);
+    const o2 = this.osc("sine", mtof(m + 12), t, end, g); o2.detune.value = 4;
+  }
+}
+
+/* =====================================================================
+   6. Görselleştirici
+   ===================================================================== */
+
+const canvas = document.getElementById("viz");
+const g2 = canvas.getContext("2d");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let hues = PALETTES.neon;
+let particles = [];
+let lastKickSeen = 0;
+
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+  g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener("resize", resize); resize();
+
+const freq = new Uint8Array(512), wave = new Uint8Array(1024);
+function draw(now) {
+  const W = canvas.clientWidth, H = canvas.clientHeight, cx = W / 2, cy = H * .46;
+  g2.fillStyle = "rgba(18,13,11,.22)"; g2.fillRect(0, 0, W, H);
+  const live = engine.ctx && engine.playing;
+  let level = 0, pulse = 0;
+  if (live) {
+    engine.analyser.getByteFrequencyData(freq); engine.analyser.getByteTimeDomainData(wave);
+    for (let i = 0; i < 64; i++) level += freq[i]; level /= 64 * 255;
+    const ct = engine.ctx.currentTime;
+    engine.kicks = engine.kicks.filter((k) => ct - k < 1);
+    const recent = engine.kicks.filter((k) => k <= ct);
+    const lk = recent.length ? recent[recent.length - 1] : -9;
+    pulse = Math.max(0, 1 - (ct - lk) * 4);
+    if (lk !== lastKickSeen && ct - lk < .05) { lastKickSeen = lk; burst(cx, cy, 14 + level * 30); }
+  } else {
+    level = .12 + Math.sin(now / 900) * .05;
+  }
+  const R = Math.min(W, H) * .2 * (1 + pulse * .12 + level * .25);
+  const [h1, h2] = hues;
+
+  // radyal frekans çubukları
+  const N = 96;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+    const v = live ? freq[Math.floor((i < N / 2 ? i : N - i) * 3.2) + 2] / 255 : .18 + .12 * Math.sin(now / 700 + i * .4);
+    const len = 6 + v * v * Math.min(W, H) * .32;
+    g2.strokeStyle = `hsla(${h1 + (h2 - h1) * (i / N)}, 90%, ${55 + v * 20}%, ${.35 + v * .6})`;
+    g2.lineWidth = 2.2;
+    g2.beginPath();
+    g2.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    g2.lineTo(cx + Math.cos(a) * (R + len), cy + Math.sin(a) * (R + len));
+    g2.stroke();
+  }
+  // dalga halkası
+  g2.beginPath();
+  for (let i = 0; i <= 128; i++) {
+    const a = (i / 128) * Math.PI * 2;
+    const w = live ? (wave[(i * 8) % 1024] - 128) / 128 : Math.sin(now / 500 + i * .3) * .05;
+    const r = R * .82 + w * R * .5;
+    const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+    i ? g2.lineTo(x, y) : g2.moveTo(x, y);
+  }
+  g2.strokeStyle = `hsla(${h2}, 95%, 70%, .9)`; g2.lineWidth = 1.5; g2.stroke();
+  // çekirdek
+  const grd = g2.createRadialGradient(cx, cy, 0, cx, cy, R * .78);
+  grd.addColorStop(0, `hsla(${h1}, 95%, 65%, ${.35 + pulse * .5})`);
+  grd.addColorStop(1, `hsla(${h2}, 90%, 40%, 0)`);
+  g2.fillStyle = grd; g2.beginPath(); g2.arc(cx, cy, R * .78, 0, Math.PI * 2); g2.fill();
+  // parçacıklar
+  particles = particles.filter((p) => (p.life -= .016) > 0);
+  for (const p of particles) {
+    p.x += p.vx; p.y += p.vy; p.vx *= .985; p.vy *= .985;
+    g2.fillStyle = `hsla(${p.h}, 95%, 70%, ${p.life})`;
+    g2.fillRect(p.x, p.y, 2, 2);
+  }
+  if (!reduceMotion || !live) requestAnimationFrame(draw);
+  else setTimeout(() => requestAnimationFrame(draw), 120);
+}
+function burst(cx, cy, n) {
+  if (reduceMotion) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3;
+    particles.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .6 + Math.random() * .6, h: hues[Math.random() < .5 ? 0 : 1] });
+  }
+  if (particles.length > 600) particles.splice(0, particles.length - 600);
+}
+
+function setPalette(name) {
+  hues = PALETTES[name] ?? PALETTES.neon;
+  document.documentElement.style.setProperty("--v1", `hsl(${hues[0]} 90% 62%)`);
+  document.documentElement.style.setProperty("--v2", `hsl(${hues[1]} 90% 62%)`);
+  document.getElementById("sectionName").style.color = `hsl(${hues[0]} 90% 72%)`;
+}
+
+/* =====================================================================
+   7. Arayüz
+   ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+const engine = new Engine();
+let decisions = null;
+let decisionsAreExample = true;
+let conductorBusy = false;
+
+const SCENES = [
+  "Gece yarısı İstanbul'da yağmur, boş bir vapurda yalnız bir yolcu",
+  "Bodrum'da gün batımı, iskelede dans eden kalabalık",
+  "Terk edilmiş uzay istasyonunda sessiz bir sabah",
+  "Neon ışıklı Tokyo otoyolunda gece sürüşü",
+  "Karanlık bir sokakta kovalamaca, arkadan ayak sesleri",
+  "Karlı bir dağ kulübesinde şömine başında kahve",
+  "Pazar sabahı, kitap, çay ve pencereden süzülen güneş",
+  "Kahramanın son savaşa yürüdüğü epik an",
+];
+for (const s of SCENES) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.textContent = s;
+  b.onclick = () => { $("prompt").value = s; compose(true); };
+  $("chips").append(b);
+}
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.dataset.show = "true";
+  clearTimeout(toast.h); toast.h = setTimeout(() => (t.dataset.show = "false"), 4200);
+}
+
+function setLive(on) {
+  cfg.live = on; store.set("live", on ? "1" : "0");
+  const pill = $("modePill");
+  pill.classList.toggle("live", on);
+  pill.querySelector("span").textContent = on ? (cfg.proxy ? "canlı · proxy" : "canlı jev") : "demo";
+}
+
+function fmtPct(x) { return Math.round(x * 100) + "%"; }
+
+function renderDecisions(d, meta, isExample) {
+  const grid = $("decisions"); grid.innerHTML = "";
+  let i = 0;
+  for (const [id, v] of Object.entries(d)) {
+    const q = COMPOSE_QUESTIONS[id];
+    const card = document.createElement("article");
+    card.className = "card"; card.style.setProperty("--i", i++);
+    let tag = q.type, value = "", body = "";
+    if (v.kind === "choice") {
+      value = `${pretty(v.value)}<small>${fmtPct(v.confidence)}</small>`;
+      const top = Object.entries(v.probs).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      body = `<div class="bars">${top.map(([k, p]) => `
+        <div class="bar${k === v.value ? " win" : ""}"><span>${pretty(k)}</span>
+        <div class="track"><div class="fill" style="width:${Math.max(2, p * 100)}%"></div></div><span>${fmtPct(p)}</span></div>`).join("")}</div>`;
+    } else if (v.kind === "score") {
+      tag = `score·${q.criteria.length}`;
+      value = `${v.label}<small>${v.value.toFixed(2)}</small>`;
+      const mx = Math.max(...v.dist, .001);
+      body = `<div class="seg">${v.dist.map((p, j) => `<div style="height:${8 + (p / mx) * 92}%;opacity:${.25 + (p / mx) * .75};animation-delay:${j * 40}ms" title="${q.criteria[j]}: ${fmtPct(p)}"></div>`).join("")}</div>
+        <div class="seg-labels"><span>${q.criteria[0]}</span><span>${q.criteria[q.criteria.length - 1]}</span></div>`;
+    } else {
+      value = `${v.value >= .5 ? "evet" : "hayır"}<small>p=${v.value.toFixed(2)}</small>`;
+      body = `<div class="noul"><div style="width:${Math.max(2, v.value * 100)}%"></div></div>`;
+    }
+    card.innerHTML = `<div class="card-head"><span class="card-title">${LABELS[id]}</span><span class="type-tag">${tag}</span></div>
+      <div class="card-value">${value}</div>${body}`;
+    grid.append(card);
+  }
+  const p = toParams(d, $("prompt").value);
+  $("verdictBig").textContent = `${p.key} ${pretty(p.mode)} · ${p.genre} · ${p.bpm} bpm`;
+  $("verdictSub").innerHTML = isExample
+    ? `örnek sahne · <b>▶</b> ile ya da “Jev'e sor” ile başlat`
+    : `${Object.keys(d).length} tipli soru · tek geçiş · <b>${Math.round(meta.ms)} ms</b> · ${meta.live ? cfg.servedModel : "demo simülasyonu"}`;
+}
+
+async function compose(play) {
+  const prompt = $("prompt").value.trim();
+  if (!prompt) { $("prompt").focus(); return; }
+  const btn = $("goBtn"); btn.setAttribute("aria-busy", "true");
+  btn.querySelector("span").textContent = "Jev düşünüyor…";
+  if (play) { engine.init(); engine.ctx.resume(); } // iOS: ses bağlamı kullanıcı dokunuşu içinde açılmalı
+  try {
+    const res = await askJev(prompt, COMPOSE_QUESTIONS, simulateCompose);
+    decisions = readAll(res.answers, COMPOSE_QUESTIONS);
+    decisionsAreExample = false;
+    $("rawJson").textContent = JSON.stringify({ request: res.request, response: res.raw }, null, 2);
+    renderDecisions(decisions, res, false);
+    setPalette(decisions.palette.value);
+    const params = toParams(decisions, prompt);
+    $("nowTitle").textContent = prompt;
+    $("nowSub").textContent = `${params.key} ${pretty(params.mode)} · ${params.genre} · ${params.bpm} bpm · ${Math.round(res.ms)} ms`;
+    if (play) {
+      engine.setParams(params);
+      if (!engine.playing) await startPlayback();
+      else toast("Yeni sahne bir sonraki barda devreye giriyor.");
+    }
+  } finally {
+    btn.removeAttribute("aria-busy");
+    btn.querySelector("span").textContent = "Jev'e sor ve çal";
+  }
+}
+
+async function startPlayback() {
+  engine.init(); engine.ctx.resume();
+  if (!decisions || decisionsAreExample) return compose(true);
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  if (!engine.params) engine.setParams(toParams(decisions, $("prompt").value));
+  engine.master.gain.cancelScheduledValues(engine.ctx.currentTime);
+  engine.master.gain.setValueAtTime(.8, engine.ctx.currentTime);
+  await engine.start();
+  $("playIcon").innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+  $("playBtn").setAttribute("aria-label", "Durdur");
+  requestWakeLock();
+  $("conductorLog").innerHTML = "";
+}
+
+function stopPlayback() {
+  engine.stop();
+  $("playIcon").innerHTML = '<path d="M7 4v16l13-8z"/>';
+  $("playBtn").setAttribute("aria-label", "Çal");
+  $("sectionName").textContent = "durdu";
+  if (recorder?.state === "recording") recorder.stop();
+  releaseWakeLock();
+}
+
+engine.onBar = (bar) => {
+  const p = engine.params;
+  $("stageMeta").innerHTML = `<b>${p.bpm}</b> bpm · ${p.key} ${pretty(p.mode)}<br>bar <b>${bar + 1}</b> · ${bar % 8 + 1}/8`;
+  // Bölüm sınırından 4 bar önce şefe sor; cevap sınırda uygulanır
+  if (bar % 8 === 4 && $("conductorToggle").checked && !conductorBusy) askConductor(bar);
+  if (bar % 8 === 4 && !$("conductorToggle").checked) {
+    const order = ["intro", "build", "drop", "breakdown", "drop"];
+    engine.nextSection = order[(Math.floor(bar / 8) + 1) % order.length];
+  }
+};
+engine.onSection = (sec) => { $("sectionName").textContent = pretty(sec); };
+
+async function askConductor(bar) {
+  conductorBusy = true;
+  const p = engine.params;
+  const state = JSON.stringify({
+    scene: $("prompt").value.trim(), bar, section: engine.section,
+    genre: p.genre, energy: +p.energy.toFixed(2), bpm: p.bpm,
+    history: logHistory.slice(0, 4),
+  });
+  try {
+    const res = await askJev(state, CONDUCTOR_QUESTIONS, simulateConductor);
+    const d = readAll(res.answers, CONDUCTOR_QUESTIONS);
+    engine.nextSection = d.section.value;
+    engine.fill = d.fill.value > .5;
+    logHistory.unshift(d.section.value);
+    const li = document.createElement("li");
+    li.innerHTML = `<span>bar ${bar + 5}</span><span>→ <b>${pretty(d.section.value)}</b> ${fmtPct(d.section.confidence)}${engine.fill ? " · fill" : ""}</span><span>${Math.round(res.ms)} ms</span>`;
+    const log = $("conductorLog"); log.prepend(li);
+    while (log.children.length > 5) log.lastChild.remove();
+  } finally { conductorBusy = false; }
+}
+const logHistory = [];
+
+$("compose").addEventListener("submit", (e) => { e.preventDefault(); compose(true); });
+$("prompt").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); compose(true); } });
+$("playBtn").addEventListener("click", () => (engine.playing ? stopPlayback() : startPlayback()));
+
+/* ---- kayıt ---- */
+let recorder = null, chunks = [];
+$("recBtn").addEventListener("click", async () => {
+  if (recorder?.state === "recording") { recorder.stop(); return; }
+  if (!window.MediaRecorder) { toast("Bu tarayıcı ses kaydını desteklemiyor."); return; }
+  if (!engine.playing) await startPlayback();
+  const type = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((t) => MediaRecorder.isTypeSupported?.(t)) || "";
+  recorder = new MediaRecorder(engine.recDest.stream, type ? { mimeType: type } : undefined);
+  chunks = [];
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => {
+    $("recBtn").setAttribute("aria-pressed", "false");
+    const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+    const url = URL.createObjectURL(blob), ext = blob.type.includes("mp4") ? "m4a" : "webm";
+    const name = "jev-groove-" + $("prompt").value.trim().toLocaleLowerCase("tr").replace(/[^a-z0-9ğüşöçı]+/gi, "-").slice(0, 40) + "." + ext;
+    $("take").innerHTML = `<audio controls src="${url}"></audio><a href="${url}" download="${name}">İndir · ${name}</a>`;
+    $("takePanel").hidden = false;
+    toast("Kayıt hazır, aşağıda.");
+  };
+  recorder.start();
+  $("recBtn").setAttribute("aria-pressed", "true");
+  toast("Kaydediliyor. Bitirmek için tekrar KAYIT'a dokun.");
+});
+
+/* ---- ekran kilidi ---- */
+let wakeLock = null;
+async function requestWakeLock() { try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} }
+function releaseWakeLock() { try { wakeLock?.release(); } catch {} wakeLock = null; }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && engine.playing) requestWakeLock(); });
+
+/* ---- ayarlar ---- */
+$("openSettings").addEventListener("click", () => {
+  $("cfgEndpoint").value = cfg.endpoint; $("cfgKey").value = cfg.key; $("cfgModel").value = cfg.model;
+  $("settings").showModal();
+});
+$("settings").addEventListener("close", () => {
+  const v = $("settings").returnValue;
+  if (v === "save") {
+    cfg.endpoint = $("cfgEndpoint").value.trim() || DEFAULT_ENDPOINT;
+    cfg.key = $("cfgKey").value.trim();
+    cfg.model = $("cfgModel").value.trim() || "jev-latest";
+    cfg.proxy = false;
+    store.set("endpoint", cfg.endpoint); store.set("key", cfg.key || null); store.set("model", cfg.model);
+    const canGoLive = !!cfg.key || cfg.endpoint !== DEFAULT_ENDPOINT;
+    setLive(canGoLive);
+    toast(canGoLive ? "Canlı Jev açık. Bir sahne gönder." : "Anahtar yok, demo modunda kalıyoruz.");
+  } else if (v === "demo") {
+    setLive(false); toast("Demo modu: Jev'in cevap şekli yerelde taklit ediliyor.");
+  }
+});
+
+/* ---- açılış ---- */
+(async function boot() {
+  // server.mjs ile servis ediliyorsa proxy'yi bul, anahtar sunucuda kalsın
+  if (location.protocol.startsWith("http")) {
+    try {
+      const r = await fetch("api/health", { cache: "no-store" });
+      if (r.ok) {
+        const h = await r.json();
+        if (h.jev && h.hasKey) { cfg.endpoint = new URL("api/jev", location.href).href; cfg.proxy = true; cfg.live = true; }
+      }
+    } catch {}
+  }
+  setLive(cfg.live && (cfg.proxy || !!cfg.key || cfg.endpoint !== DEFAULT_ENDPOINT));
+
+  // Ekran boş kalmasın: örnek sahnenin kararlarını yerelde hazırla
+  const answers = simulateCompose($("prompt").value, COMPOSE_QUESTIONS);
+  decisions = readAll(answers, COMPOSE_QUESTIONS);
+  renderDecisions(decisions, { ms: 0 }, true);
+  setPalette(decisions.palette.value);
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

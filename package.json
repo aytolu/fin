@@ -1,0 +1,13 @@
+{
+  "name": "jev-groove",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jev (Typesafe) kararlarıyla tarayıcıda anlık müzik üreten küçük uygulama",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
