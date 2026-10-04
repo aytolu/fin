@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zevk Laboratuvarı</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23c6f432%27/%3E%3Cpath d=%27M8 20l5-8 4 6 3-4 4 6%27 stroke=%27%23101410%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0e110d; --bg2: #151913; --bg3: #1d2219; --line: #2c3426;
+    --ink: #eef2e6; --mute: #98a38b; --acid: #c6f432; --warn: #ffb454; --bad: #ff7a6b;
+    --c0: #c6f432; --c1: #5ad1ff; --c2: #ff7ab8; --c3: #ffb454; --c4: #a58bff; --c5: #4eeab2; --c6: #ff7a6b; --c7: #e6e6e6;
+    --sans: "Space Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  :root[data-theme="light"] { color-scheme: light; --bg:#f6f7f1; --bg2:#fff; --bg3:#eef0e6; --line:#d6dac9; --ink:#171b12; --mute:#5d6753; --acid:#5a7d00; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { color-scheme: light; --bg:#f6f7f1; --bg2:#fff; --bg3:#eef0e6; --line:#d6dac9; --ink:#171b12; --mute:#5d6753; --acid:#5a7d00; } }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 15px/1.55 var(--sans); padding-bottom: 80px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--acid); outline-offset: 2px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 18px 0 8px; }
+  h1 { margin: 0 auto 0 0; font-size: 22px; letter-spacing: -.02em; }
+  h1 span { color: var(--acid); }
+  h2 { font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--mute); margin: 40px 0 14px; font-weight: 500; }
+  h2 b { color: var(--acid); margin-right: 8px; }
+  .pill { font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--mute); }
+  .pill.on { color: var(--acid); border-color: color-mix(in srgb, var(--acid) 45%, var(--line)); }
+  .lead { color: var(--mute); max-width: 62ch; margin: 4px 0 0; }
+  .btn { background: var(--acid); color: #10140a; border: 0; border-radius: 10px; padding: 11px 18px; font-weight: 700; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  a.btn { display: inline-block; text-decoration: none; }
+  .card { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .pl { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+  .pl input { accent-color: var(--acid); width: 18px; height: 18px; }
+  .pl small, .mute { color: var(--mute); }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 16px; }
+  .stat b { display: block; font-size: 26px; letter-spacing: -.02em; }
+  .stat span { font: 11px var(--mono); color: var(--mute); text-transform: uppercase; letter-spacing: .08em; }
+  .pat h3 { margin: 0 0 4px; font-size: 12px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--acid); font-weight: 500; }
+  .pat p { margin: 0 0 6px; font-weight: 500; }
+  .pat pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.5 var(--mono); color: var(--mute); }
+  svg text { fill: var(--mute); font: 10px var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--mute); margin-top: 8px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin: 6px 0 2px; }
+  .bar i { display: block; height: 100%; }
+  label.f { display: grid; gap: 4px; font-size: 13px; color: var(--mute); }
+  input[type=range] { accent-color: var(--acid); width: 220px; }
+  textarea, select { background: var(--bg3); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+  textarea { width: 100%; min-height: 60px; resize: vertical; }
+  .err { color: var(--bad); margin-top: 12px; }
+  .note { color: var(--warn); margin: 0 0 14px; font-size: 14px; }
+  .dna { font-size: clamp(22px, 4vw, 34px); line-height: 1.2; letter-spacing: -.02em; margin: 0 0 10px; font-weight: 700; }
+  .axis { display: grid; grid-template-columns: 1fr minmax(120px, 2fr) 1fr; gap: 10px; align-items: center; font-size: 13px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .axis .t { position: relative; height: 4px; background: var(--bg3); border-radius: 2px; }
+  .axis .t i { position: absolute; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: var(--acid); transform: translateX(-50%); }
+  .axis .hi { text-align: right; }
+  .axis small { grid-column: 1 / -1; color: var(--mute); }
+  .meter { display: inline-flex; gap: 14px; font: 11px var(--mono); color: var(--mute); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .tabs button { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; }
+  .tabs button[aria-selected=true] { border-color: var(--acid); color: var(--acid); }
+  .arc { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+  .arc span { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; }
+  .trk { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); align-items: start; }
+  .trk .n { font: 12px var(--mono); color: var(--mute); padding-top: 2px; }
+  .trk .r { font-size: 13px; color: var(--mute); }
+  .chip { font: 10px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--mute); white-space: nowrap; }
+  .chip.anchor { color: var(--c1); } .chip.bridge { color: var(--c0); } .chip.stretch { color: var(--c3); } .chip.wildcard { color: var(--c2); } .chip.miss { color: var(--bad); }
+  .seg { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--acid); padding: 14px 0 2px; }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--acid); border-radius: 50%; animation: s 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+  @media (max-width: 560px) { .axis { grid-template-columns: 1fr 1fr; } .axis .t { grid-column: 1 / -1; order: 3; margin: 6px 0; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Zevk <span>Laboratuvarı</span></h1>
+    <span class="pill" id="pSpotify">Spotify</span>
+    <span class="pill" id="pAi">Yapay zeka</span>
+  </header>
+  <p class="lead">Listelerini sese, zamana ve davranışa göre okur; "benzer şarkı" yerine gizli örüntüleri bulur ve bunlardan kurgulu yeni listeler yazar.</p>
+  <div class="err" id="err" role="alert" hidden></div>
+
+  <section id="s1">
+    <h2><b>1</b>Listelerini seç</h2>
+    <div id="connect" class="card" hidden>
+      <p style="margin-top:0">Listelerini okumak için Spotify ile giriş yap. Hiçbir şey yazılmaz; yeni listeyi sen onaylayınca oluşturulur.</p>
+      <a class="btn" href="/login">Spotify ile bağlan</a>
+    </div>
+    <div id="plWrap" hidden>
+      <div class="grid" id="plGrid"></div>
+      <div class="row"><button class="btn" id="goLib">Seçilenleri analiz et</button><button class="btn ghost" id="selAll">Hepsini seç</button><span class="mute" id="libStatus"></span></div>
+    </div>
+  </section>
+
+  <section id="s2" hidden>
+    <h2><b>2</b>Kodla çıkarılan örüntüler</h2>
+    <div class="stats" id="stats"></div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="mute" style="font-size:13px;margin-bottom:6px">Eklenme zamanı × zevk adası: her nokta bir şarkı, halkalı noktalar toplu ekleme günleri</div>
+      <div id="timeline"></div><div class="legend" id="tlLegend"></div>
+    </div>
+    <div class="grid" id="patterns"></div>
+    <h2 style="margin-top:28px">Zevk adaları</h2>
+    <div class="grid" id="clusters"></div>
+
+    <h2><b>3</b>Yapay zeka yorumu ve yeni liste</h2>
+    <div class="card">
+      <div class="row" style="margin-top:0">
+        <label class="f">Tanıdıklık: <b id="famV" style="color:var(--ink)">50%</b><input type="range" id="fam" min="0" max="100" step="10" value="50"></label>
+        <label class="f">Şarkı sayısı<select id="len"><option>15</option><option selected>25</option><option>40</option></select></label>
+      </div>
+      <label class="f" style="margin-top:12px">Ruh hâli / tarif (isteğe bağlı)<textarea id="mood" maxlength="400" placeholder="örn. Pazar akşamı, yağmur, biraz hüzünlü ama yataklık değil"></textarea></label>
+      <div class="row"><button class="btn" id="goAi">Yorumla ve liste kur</button><span class="mute" id="aiStatus"></span></div>
+    </div>
+  </section>
+
+  <section id="s3" hidden>
+    <div id="note" class="note" hidden></div>
+    <div id="aiOut"></div>
+    <h2 style="margin-top:28px">Önerilen listeler</h2>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div id="plan"></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = Array.from({ length: 8 }, (_, i) => `var(--c${i})`);
+const ROLE = { anchor: "kütüphaneden", bridge: "köprü", stretch: "uzanış", wildcard: "joker" };
+let state = { status: null, playlists: [], mined: null, out: null, active: 0 };
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : undefined);
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error || res.statusText);
+  return j;
+}
+const showErr = (m) => { $("err").hidden = !m; $("err").textContent = m || ""; };
+async function withProgress(el, label, fn) {
+  const tick = setInterval(async () => { try { const p = await api("/api/progress"); if (p.progress) el.innerHTML = `<span class="spin"></span>${esc(p.progress)}`; } catch {} }, 800);
+  el.innerHTML = `<span class="spin"></span>${esc(label)}`;
+  try { return await fn(); } finally { clearInterval(tick); el.textContent = ""; }
+}
+
+async function init() {
+  const q = new URLSearchParams(location.search).get("error");
+  if (q) showErr("Spotify girişi reddedildi: " + q);
+  state.status = await api("/api/status");
+  const st = state.status;
+  $("pSpotify").textContent = st.demo ? "Spotify: demo veri" : st.connected ? `Spotify: ${st.user || "bağlı"}` : "Spotify: bağlı değil";
+  $("pSpotify").classList.toggle("on", st.connected);
+  $("pAi").textContent = st.ai.enabled ? `Yapay zeka: ${st.ai.model}` : "Yapay zeka: yok (yalnızca yerel)";
+  $("pAi").classList.toggle("on", st.ai.enabled);
+  if (!st.connected) { $("connect").hidden = false; return; }
+  state.playlists = await api("/api/playlists");
+  $("plWrap").hidden = false;
+  $("plGrid").innerHTML = state.playlists.map((p) =>
+    `<label class="card pl"><input type="checkbox" value="${esc(p.id)}" checked><span><b>${esc(p.name)}</b><br><small>${p.count} şarkı${p.owner ? " · " + esc(p.owner) : ""}</small></span></label>`).join("");
+}
+
+$("selAll").onclick = () => { const bs = [...$("plGrid").querySelectorAll("input")]; const all = bs.every((b) => b.checked); bs.forEach((b) => (b.checked = !all)); };
+$("fam").oninput = () => ($("famV").textContent = $("fam").value + "%");
+
+$("goLib").onclick = async () => {
+  showErr("");
+  const ids = [...$("plGrid").querySelectorAll("input:checked")].map((b) => b.value);
+  if (!ids.length) return showErr("En az bir liste seç");
+  $("goLib").disabled = true;
+  try {
+    const names = Object.fromEntries(state.playlists.map((p) => [p.id, p.name]));
+    state.mined = await withProgress($("libStatus"), "Listeler okunuyor", () => api("/api/library", { ids, names, tz: -new Date().getTimezoneOffset() }));
+    renderMined(state.mined);
+    $("s2").hidden = false; $("s3").hidden = true;
+    $("s2").scrollIntoView({ behavior: "smooth" });
+  } catch (e) { showErr(e.message); } finally { $("goLib").disabled = false; }
+};
+
+function renderMined(m) {
+  $("stats").innerHTML = [["şarkı", m.stats.tracks], ["sanatçı", m.stats.artists], ["liste", m.stats.playlists], ["zevk adası", m.clusters.length]]
+    .map(([l, v]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  $("patterns").innerHTML = m.patterns.map((p) => `<article class="card pat"><h3>${esc(p.title)}</h3><p>${esc(p.headline)}</p>${p.detail ? `<pre>${esc(p.detail)}</pre>` : ""}</article>`).join("");
+  $("clusters").innerHTML = m.clusters.map((c) => `<article class="card">
+    <b style="color:${COLORS[c.id % 8]}">${esc(c.name)}</b>
+    <div class="bar"><i style="width:${Math.round(c.share * 100)}%;background:${COLORS[c.id % 8]}"></i></div>
+    <div class="mute" style="font-size:13px">${esc(c.artists.join(", "))}</div>
+    <div class="mute" style="font-size:12px;margin-top:6px">%${Math.round(c.share * 100)} · ~${c.year ?? "?"} · ${c.playlists.map((p) => esc(p.name) + " " + p.count).join(", ")}</div></article>`).join("");
+  renderTimeline(m);
+}
+
+function renderTimeline(m) {
+  const pts = m.timeline;
+  if (!pts.length) { $("timeline").innerHTML = ""; return; }
+  const rows = Math.max(1, m.clusters.length), H = 30 + rows * 24, W = 1000, pad = 28;
+  const t0 = Math.min(...pts.map((p) => p.t)), t1 = Math.max(...pts.map((p) => p.t)) || t0 + 1;
+  const x = (t) => pad + ((t - t0) / Math.max(1, t1 - t0)) * (W - pad * 2);
+  const y = (c) => 14 + (c < 0 ? rows : c) * 24;
+  const years = [], y0 = new Date(t0).getUTCFullYear(), y1 = new Date(t1).getUTCFullYear();
+  for (let yr = y0 + 1; yr <= y1; yr++) years.push(yr);
+  const g = [];
+  years.forEach((yr) => { const xx = x(Date.UTC(yr, 0, 1)); g.push(`<line x1="${xx}" x2="${xx}" y1="0" y2="${H - 14}" stroke="var(--line)"/><text x="${xx + 3}" y="${H - 2}">${yr}</text>`); });
+  pts.forEach((p) => g.push(`<circle cx="${x(p.t).toFixed(1)}" cy="${y(p.c)}" r="${p.burst ? 4.5 : 3}" fill="${p.c < 0 ? "var(--mute)" : COLORS[p.c % 8]}" ${p.burst ? 'stroke="var(--ink)" stroke-width="1.2"' : ""} opacity=".85"></circle>`));
+  $("timeline").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Şarkıların eklenme zamanı ve zevk adaları">${g.join("")}</svg>`;
+  $("tlLegend").innerHTML = m.clusters.map((c) => `<span><i style="background:${COLORS[c.id % 8]}"></i>${esc(c.name)}</span>`).join("");
+}
+
+$("goAi").onclick = async () => {
+  showErr("");
+  $("goAi").disabled = true;
+  try {
+    state.out = await withProgress($("aiStatus"), "Yapay zeka çalışıyor", () => api("/api/ai", { familiarity: +$("fam").value, length: +$("len").value, mood: $("mood").value }));
+    state.active = 0;
+    renderAi(state.out);
+    $("s3").hidden = false;
+    $("s3").scrollIntoView({ behavior: "smooth" });
+  } catch (e) { showErr(e.message); } finally { $("goAi").disabled = false; }
+};
+
+function renderAi(o) {
+  $("note").hidden = !o.note; $("note").textContent = o.note || "";
+  const a = o.ai;
+  $("aiOut").innerHTML = !a ? "" : `
+    <div class="card"><p class="dna">${esc(a.dna.headline)}</p><p style="margin:0;color:var(--mute)">${esc(a.dna.summary)}</p></div>
+    <h2>Gizli eksenler</h2>
+    <div class="card">${a.axes.map((x) => `<div class="axis"><span>${esc(x.low)}</span><div class="t"><i style="left:${((x.position + 1) / 2) * 100}%"></i></div><span class="hi">${esc(x.high)}</span><small><b>${esc(x.name)}</b>${x.note ? " — " + esc(x.note) : ""}</small></div>`).join("")}</div>
+    <h2>Hipotezler</h2>
+    <div class="grid">${a.patterns.map((p) => `<article class="card pat"><h3>${esc(p.name)}</h3><p>${esc(p.claim)}</p>
+      ${p.prediction ? `<pre>→ ${esc(p.prediction)}</pre>` : ""}
+      <div class="mute" style="font-size:12px;margin:8px 0">${p.evidence.map((e) => esc(e.label)).join(" · ")}</div>
+      <span class="meter"><span>güven ${Math.round(p.confidence * 100)}%</span><span>sürpriz ${Math.round(p.surprise * 100)}%</span></span></article>`).join("")}</div>
+    ${a.blindspots.length ? `<h2>Kör noktalar</h2><div class="card"><ul style="margin:0;padding-left:18px">${a.blindspots.map((b) => `<li>${esc(b)}</li>`).join("")}</ul></div>` : ""}`;
+  $("tabs").innerHTML = o.plans.map((p, i) => `<button role="tab" aria-selected="${i === state.active}" data-i="${i}">${esc(p.title)}</button>`).join("");
+  $("tabs").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; state.active = +b.dataset.i; renderAi(o); };
+  renderPlan(o.plans[state.active], state.active, o.demo);
+}
+
+function renderPlan(p, idx, demo) {
+  if (!p) { $("plan").innerHTML = '<div class="card mute">Liste kurulamadı.</div>'; return; }
+  let lastSeg = -1;
+  const found = p.tracks.filter((t) => t.uri).length;
+  const rows = p.tracks.map((t, i) => {
+    const seg = p.arc[t.segment] && t.segment !== lastSeg ? (lastSeg = t.segment, `<div class="seg">${esc(p.arc[t.segment].label)}${p.arc[t.segment].note ? " — " + esc(p.arc[t.segment].note) : ""}</div>`) : "";
+    return `${seg}<div class="trk"><span class="n">${i + 1}</span><div><b>${esc(t.title)}</b> <span class="mute">· ${esc(t.artist)}</span>${t.reason ? `<div class="r">${esc(t.reason)}</div>` : ""}</div>
+      <span><span class="chip ${t.role}">${ROLE[t.role] || t.role}</span>${!t.uri && !demo ? ' <span class="chip miss">bulunamadı</span>' : ""}</span></div>`;
+  }).join("");
+  $("plan").innerHTML = `<div class="card">
+    <h3 style="margin:0 0 4px;font-size:22px">${esc(p.title)}</h3>
+    <div style="color:var(--mute)">${esc(p.concept)}</div>
+    ${p.why ? `<p style="margin:10px 0 0">${esc(p.why)}</p>` : ""}
+    ${p.arc.length ? `<div class="arc">${p.arc.map((s) => `<span>${esc(s.label)}</span>`).join("")}</div>` : ""}
+    ${rows}
+    <div class="row">
+      <input id="plName" value="${esc(p.title)}" maxlength="100" aria-label="Liste adı" style="background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:220px">
+      <label class="pl"><input type="checkbox" id="plPub"> <small>herkese açık</small></label>
+      <button class="btn" id="create" ${demo ? "disabled title='Demo modunda Spotify’a yazılamaz'" : ""}>Spotify’da oluştur (${found}/${p.tracks.length})</button>
+    </div><div id="createOut" class="mute" style="margin-top:10px"></div></div>`;
+  $("create").onclick = async () => {
+    $("create").disabled = true;
+    try {
+      const r = await api("/api/create", { planIndex: idx, name: $("plName").value, isPublic: $("plPub").checked });
+      $("createOut").innerHTML = `Oluşturuldu: <a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--acid)">Spotify’da aç</a> · ${r.added} şarkı eklendi${r.skipped ? `, ${r.skipped} bulunamadı` : ""}`;
+    } catch (e) { showErr(e.message); $("create").disabled = false; }
+  };
+}
+
+init().catch((e) => showErr(e.message));
+</script>
+</body>
+</html>

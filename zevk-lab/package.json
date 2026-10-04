@@ -1,0 +1,15 @@
+{
+  "name": "zevk-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spotify listelerinden zevk örüntüleri çıkarıp yapay zekayla yeni liste kuran küçük uygulama",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "demo": "DEMO=1 node server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
